@@ -1,0 +1,6 @@
+channel: edge
+addons:
+  ledfx:
+    repository: Chem0908/addon-ledfx
+    target: ledfx
+    image: ghcr.io/chem0908/ledfx/{arch}
