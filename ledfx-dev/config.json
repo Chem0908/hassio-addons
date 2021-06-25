@@ -1,7 +1,7 @@
 {
-  "name": "ledfx dev",
+  "name": "ledfx-dev",
   "version": 6815efd
-  "slug": "ledfx dev",
+  "slug": "ledfx-dev",
   "description": "A network based LED effect controller with support for advanced real-time audio effects!",
   "url": "https://github.com/chem0908/addon-ledfx",
   "webui": "[PROTO:ssl]://[HOST]:[PORT:80]",
