@@ -4,7 +4,7 @@ addons:
     repository: Chem0908/addon-ledfx
     target: ledfx
     image: ghcr.io/chem0908/ledfx/{arch}
-  ledfx dev:
+  ledfx-dev:
     repository: Chem0908/addon-ledfx
-    target: ledfx dev
+    target: ledfx-dev
     image: ghcr.io/chem0908/ledfx/{arch}

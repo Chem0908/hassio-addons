@@ -1,0 +1,1 @@
+- ⬆️ Upgrades add-on base image to v9.2.2 (#62)
