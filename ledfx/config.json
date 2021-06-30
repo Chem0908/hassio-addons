@@ -1,6 +1,6 @@
 {
   "name": "ledfx",
-  "version": "dev",
+  "version": "987221067@sha256:5dd5db7fec6fa664ebe9cef510cd40eb889be9464cc483a63f9dc5c611e48387",
   "slug": "ledfx",
   "description": "A network based LED effect controller with support for advanced real-time audio effects!",
   "url": "https://github.com/chem0908/addon-ledfx",
@@ -35,5 +35,5 @@
     "keyfile": "str",
     "ssl": "bool"
   },
-  "image": "shirom/ledfx/{arch}"
+  "image": "ghcr.io/chem0908/ledfx-dev"
 }
