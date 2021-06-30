@@ -35,5 +35,5 @@
     "keyfile": "str",
     "ssl": "bool"
   },
-  "image": "ghcr.io/chem0908/addon-ledfx"
+  "image": "ghcr.io/chem0908/ledfx/{arch}"
 }
