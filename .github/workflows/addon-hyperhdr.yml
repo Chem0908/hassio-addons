@@ -31,8 +31,22 @@ jobs:
       - name: Convert addons to array
         id: convert
         run: |
-          ADDONS=$(echo "${{ steps.addons.outputs.addons }}" | tr '\n' ',' | sed 's/,$//')
-          echo "::set-output name=addons::[$ADDONS]"
+          # Initialize an empty array
+          addons=()
+      
+          # Convert the string to an array
+          IFS=' ' read -r -a array <<< "${{ steps.addons.outputs.addons }}"
+      
+          # Append each addon to the array
+          for addon in "${array[@]}"; do
+            addons+=("\"${addon}\"")
+          done
+      
+          # Join the array into a JSON array string
+          json_addons=$(printf '%s,' "${addons[@]}" | sed 's/,$//')
+      
+          # Output the JSON array
+          echo "::set-output name=addons::[${json_addons}]"
         shell: bash
   build:
     needs: init
