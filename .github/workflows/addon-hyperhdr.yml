@@ -4,38 +4,83 @@ name: 'Addon-HyperHDR'
 on: [ workflow_dispatch ]
 
 jobs:
-  build:
+  init:
     runs-on: ubuntu-latest
-
+    name: Initialize builds
+    outputs:
+      changed: ${{ steps.changed_addons.outputs.changed }}
     steps:
       # Check out the repository
-      - uses: actions/checkout@v2
-
+      - name: Check out the repository
+        uses: actions/checkout@v3
+        
       # Set up Node.js
-      - uses: actions/setup-node@v1
-
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        
       # Sync version to source
-      - run: ./.github/scripts/update-hyperhdr-version.sh
+      - name: Sync HyperHDR
+        run: ./.github/scripts/update-hyperhdr-version.sh
+        
+      # Find add-ons in repository
+      - name: Find add-on directories
+        id: addons
+        uses: home-assistant/actions/helpers/find-addons@master
+      # Set the output
+      - name: Set addon output
+        run: echo "addons=${{ steps.addons.outputs.addons }}" >> $GITHUB_OUTPUT
+  build:
+    runs-on: ubuntu-latest
+    name: Build ${{ matrix.arch }} ${{ matrix.addon }} add-on
+    strategy:
+      matrix:
+        addon: ${{ fromJson(needs.init.outputs.addons) }}
+        arch: ["aarch64", "amd64", "armhf", "armv7"]
+    steps:
+      # Check out the repository
+      - name: Check out repository
+        uses: actions/checkout@v3
 
+      - name: Get information
+        id: info
+        uses: home-assistant/actions/helpers/info@master
+        with:
+          path: "./${{ matrix.addon }}"
+
+      - name: Check if add-on should be built
+        id: check
+        run: |
+          if [[ "${{ steps.info.outputs.architectures }}" =~ ${{ matrix.arch }} ]]; then
+             echo "build_arch=true" >> $GITHUB_OUTPUT;
+             echo "image=$(echo ${{ steps.info.outputs.image }} | cut -d'/' -f3)" >> $GITHUB_OUTPUT;
+             if [[ -z "${{ github.head_ref }}" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
+                 echo "BUILD_ARGS=" >> $GITHUB_ENV;
+             fi
+           else
+             echo "${{ matrix.arch }} is not a valid arch for ${{ matrix.addon }}, skipping build";
+             echo "::set-output name=build_arch::false";
+          fi
+      
       # Log in to GitHub Container Registry (GHCR)
       - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        if: env.BUILD_ARGS != '--test'
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build the Docker image for different architectures
-      - name: Build and Push Docker Image for amd64
-        run: |
-          docker build -t ghcr.io/${{ github.repository }}/hyperhdr:amd64 -f Dockerfile .
-          docker push ghcr.io/${{ github.repository }}/hyperhdr:amd64
-
-      - name: Build and Push Docker Image for armhf
-        run: |
-          docker build -t ghcr.io/${{ github.repository }}/hyperhdr:armhf -f Dockerfile.armhf .
-          docker push ghcr.io/${{ github.repository }}/hyperhdr:armhf
-
-      - name: Build and Push Docker Image for aarch64
-        run: |
-          docker build -t ghcr.io/${{ github.repository }}/hyperhdr:aarch64 -f Dockerfile.aarch64 .
-          docker push ghcr.io/${{ github.repository }}/hyperhdr:aarch64
+      - name: Build ${{ matrix.addon }} add-on
+        if: steps.check.outputs.build_arch == 'true'
+        uses: home-assistant/builder@2022.11.0
+        with:
+          args: |
+            ${{ env.BUILD_ARGS }} \
+            --${{ matrix.arch }} \
+            --target /data/${{ matrix.addon }} \
+            --image "${{ steps.check.outputs.image }}" \
+            --docker-hub "ghcr.io/${{ github.repository_owner }}" \
+            --addon
 
       # Update version if needed
       - uses: test-room-7/action-update-file@v1
