@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Initialize builds
     outputs:
-      addons: ${{ steps.addons.outputs.addons }} # Output the add-ons found
+      addons: ${{ steps.convert.outputs.addons }} # Output the add-ons found
     steps:
       # Check out the repository
       - name: Check out the repository
@@ -31,7 +31,7 @@ jobs:
       - name: Convert addons to array
         id: convert
         run: |
-          ADDONS=$(echo "${{ needs.init.outputs.addons }}" | tr '\n' ',' | sed 's/,$//')
+          ADDONS=$(echo "${{ steps.addons.outputs.addons }}" | tr '\n' ',' | sed 's/,$//')
           echo "::set-output name=addons::[$ADDONS]"
         shell: bash
   build:
