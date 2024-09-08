@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Initialize builds
     outputs:
-      changed: ${{ steps.changed_addons.outputs.changed }}
+      addons: ${{ steps.addons.outputs.addons }}
     steps:
       # Check out the repository
       - name: Check out the repository
@@ -26,12 +26,16 @@ jobs:
       - name: Find add-on directories
         id: addons
         uses: home-assistant/actions/helpers/find-addons@master
+        
+      - name: Debug add-on directories
+        run: | 
+          echo "Addons output: ${{ steps.addons.outputs.addons }}"
   build:
     runs-on: ubuntu-latest
     name: Build ${{ matrix.arch }} ${{ matrix.addon }} add-on
     strategy:
       matrix:
-        addon: ${{ needs.init.outputs.addons }}
+        addon: ${{ fromJson(needs.init.outputs.addons) }}
         arch: ["aarch64", "amd64", "armhf", "armv7"]
     steps:
     # Debug
